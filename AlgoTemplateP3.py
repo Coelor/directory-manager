@@ -18,6 +18,8 @@ class FSNode:
         add_child(node): Adds a child node to a directory.
         get_path(): Returns the full path from root to this node.
         get_size(): For files, returns the file size. For directories, returns the sum of all contained files.
+        create_file(name, size, metadata=None, parent=None): Factory function to create a file node.
+        create_directory(name, parent=None): Factory function to create a directory node.
     """
     def __init__(self, name, is_directory=False, size=0, metadata=None, parent=None):
         self.name = name
@@ -47,14 +49,11 @@ class FSNode:
             total_size += child.get_size()
         return total_size
 
+    def create_file(name, size, metadata=None, parent=None):
+        return FSNode(name, is_directory=False, size=size, metadata=metadata, parent=parent)
 
-# Factory functions to create specific node types
-def create_file(name, size, metadata=None, parent=None):
-    return FSNode(name, is_directory=False, size=size, metadata=metadata, parent=parent)
-
-
-def create_directory(name, parent=None):
-    return FSNode(name, is_directory=True, parent=parent)
+    def create_directory(name, parent=None):
+        return FSNode(name, is_directory=True, parent=parent)
 
 
 class FileSystem:
