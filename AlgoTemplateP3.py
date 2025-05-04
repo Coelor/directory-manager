@@ -2,6 +2,23 @@ from collections import deque
 
 
 class FSNode:
+    """
+    FSNode class represents a node in a file system hierarchy.
+    This class can represent both directories and files. Directories can have children (other FSNodes),
+    while files cannot. Sizes are stored only for files in kilobytes (KB).
+    Attributes:
+        name (str): The name of the file or directory.
+        is_directory (bool): True if this node is a directory, False if it's a file.
+        size (int): Size of the file in KB (only applicable for files, directories have size 0).
+        metadata (dict): Dictionary for storing additional attributes like last modified time, file type, etc.
+        parent (FSNode): Reference to the parent node. None for the root node.
+        children (dict): Dictionary of child nodes, with names as keys and FSNode objects as values.
+                        Only directories have children; for files, this is None.
+    Methods:
+        add_child(node): Adds a child node to a directory.
+        get_path(): Returns the full path from root to this node.
+        get_size(): For files, returns the file size. For directories, returns the sum of all contained files.
+    """
     def __init__(self, name, is_directory=False, size=0, metadata=None, parent=None):
         self.name = name
         self.is_directory = is_directory
