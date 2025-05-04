@@ -118,7 +118,7 @@ class FileSystem:
 
         return duplicates
 
-    def print_directory(self, node=None, level=0):
+    def print_directory(self, node=None, level=0):  # DFS traversal
         """Print the directory structure"""
         if node is None:
             node = self.root
