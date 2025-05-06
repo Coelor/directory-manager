@@ -1,4 +1,5 @@
 from collections import deque
+import time
 
 
 class FSNode:
@@ -71,7 +72,7 @@ class FileSystem:
 
         for path in path_list:
             if path not in current_node.children:
-                new_dir = create_directory(path, parent=current_node)
+                new_dir = FSNode.create_directory(path, parent=current_node)
                 current_node.add_child(new_dir)
             current_node = current_node.children[path]
 
@@ -79,11 +80,28 @@ class FileSystem:
         self.index_file(file_node, current_node)
 
     def index_file(self, file, directory):
-        return 0
+        # """Index the file for quick lookups"""
+        # Add to file index
+        if file.name not in self.file_index:
+            self.file_index[file.name] = []
+        self.file_index[file.name].append((file, directory))
+
+        # Add to type index
+        ext = file.metadata.get('extension', 'unknown')
+        if ext not in self.type_index:
+            self.type_index[ext] = []
+        self.type_index[ext].append((file, directory))
+
+        # Add to size index
+        size = file.get_size()
+        if size not in self.size_index:
+            self.size_index[size] = []
+        self.size_index[size].append((file, directory))
 
     def find_file_by_name(self, filename):
-        # """Find files by exact name match"""
-        return self.file_index.get(filename, [])
+        # """Find files by exact name match and return their full paths."""
+        results = self.file_index.get(filename, [])
+        return [directory.get_path() + '/' + file.name for file, directory in results]
 
     def wildcard_search(self, pattern):
         # """Support wildcard searches using regex"""
@@ -101,23 +119,23 @@ class FileSystem:
 
         return results
 
-    def find_shortest_path(self, filename):
-        shortest_path = None
-        min_depth = float('inf')
-        file_instances = self.find_file_by_name(filename)
-        if not file_instances:
-            return None
-        # """Find the shortest path to a file using BFS"""
-        if filename not in self.file_index:
-            return None
-        # Use BFS to find shortest path (fewest directory hops)
+    # def find_shortest_path(self, filename):
+    #     shortest_path = None
+    #     min_depth = float('inf')
+    #     file_instances = self.find_file_by_name(filename)
+    #     if not file_instances:
+    #         return None
+    #     # """Find the shortest path to a file using BFS"""
+    #     if filename not in self.file_index:
+    #         return None
+    #     # Use BFS to find shortest path (fewest directory hops)
 
-        # Find all instances of the file
+    #     # Find all instances of the file
 
-        for file, directory in file_instances:
-            continue  # Calculate path depth
+    #     for file, directory in file_instances:
+    #         continue  # Calculate path depth
 
-        return shortest_path, min_depth
+    #     return shortest_path, min_depth
 
     def find_duplicate_files(self):
         """Find duplicate files based on size and content hash"""
@@ -147,12 +165,37 @@ class FileSystem:
 
 fs = FileSystem()
 # Example usage
-fs.add_file(['dir1', 'subdir1'], create_file('file1.txt', 100, {'extension': 'txt'}))
-fs.add_file(['dir1', 'subdir2'], create_file('file2.txt', 200, {'extension': 'txt'}))
-fs.add_file(['dir2'], create_file('file3.jpg', 300, {'extension': 'jpg'}))
+fs.add_file(['dir1', 'subdir1'], FSNode.create_file('file1.txt', 100, {'extension': 'txt'}))
+fs.add_file(['dir1', 'subdir2'], FSNode.create_file('file1.txt', 100, {'extension': 'txt'}))
+fs.add_file(['dir1', 'subdir2'], FSNode.create_file('file2.txt', 200, {'extension': 'txt'}))
+fs.add_file(['dir2'], FSNode.create_file('file3.jpg', 300, {'extension': 'jpg'}))
 
-print(fs.find_file_by_name('file1.txt'))
-print(fs.find_by_metadata({'extension': 'txt'}))
-print(fs.find_shortest_path('file3.jpg'))
-print(fs.find_duplicate_files())
-fs.print_directory()
+# Function to measure execution time
+def measure_time(func, *args, **kwargs):
+    start_time = time.time()
+    result = func(*args, **kwargs)
+    end_time = time.time()
+    print(f"Time taken: {(end_time - start_time)*1000:.4f} ms")
+    return result
+
+print("Finding files by name 'file1.txt':")
+result = measure_time(fs.find_file_by_name, 'file1.txt')
+print(result)
+
+print("\nFinding files by extension 'txt':")
+result = measure_time(fs.find_by_metadata, {'extension': 'txt'})
+print(result)
+
+# print("\nFinding shortest path to 'file3.jpg':")
+# result = measure_time(fs.find_shortest_path, 'file3.jpg')
+# print(result)
+
+print("\nFinding duplicate files:")
+result = measure_time(fs.find_duplicate_files)
+print(result)
+
+print("\nDirectory structure:")
+measure_time(fs.print_directory)
+
+print("\nDirectory structure for 'dir1':")
+measure_time(fs.print_directory, fs.root.children['dir1'])
