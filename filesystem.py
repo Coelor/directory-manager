@@ -94,18 +94,23 @@ class FileSystem:
         return None
 
     def find_duplicate_files(self):
-        """Find duplicate files based on size and content hash"""
-        # Group by size first (quick filter)
-        size_groups = {}
-        # For files with same size, we would compare content hash
-        # (in a real implementation, not just simulated)
+        # """Find duplicates files based on name and size"""
+        seen = {}
         duplicates = []
-        for size, files in size_groups.items():
-            if len(files) > 1:
-                continue
-                # In a real implementation, we would hash file contents here
-                # For simulation, just assume files with same name and size are duplicates
 
+        for filename, entries in self.file_index.items():
+            for file, directory in entries:
+                key = (file.name, file.get_size())
+                path = f"{directory.get_path()}/{file.name} ({file.get_size()} KB)"
+
+                if key in seen:
+                    if seen[key] is not None:
+                        duplicates.append(seen[key])
+                        seen[key] = None
+                    duplicates.append(path)
+                else:
+                    seen[key] = path
+        
         return duplicates
 
     def print_directory(self, node=None, level=0):  # DFS traversal

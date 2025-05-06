@@ -47,7 +47,7 @@ print(result)
 
 print("\nFinding duplicate files:")
 result = measure_time(fs.find_duplicate_files)
-print(result)
+print_results("Results:", result)
 
 print("\nDirectory structure:")
 measure_time(fs.print_directory)
